@@ -198,6 +198,42 @@
         color: var(--azul-claro);
       }
 
+      .rsvp-form {
+        display: grid;
+        gap: 14px;
+        margin-top: 20px;
+      }
+
+      .rsvp-form label {
+        display: grid;
+        gap: 8px;
+        font-weight: 700;
+        color: var(--azul-claro);
+      }
+
+      .rsvp-form input,
+      .rsvp-form select {
+        width: 100%;
+        padding: 13px 14px;
+        border: 1px solid rgba(16, 35, 75, 0.18);
+        border-radius: 14px;
+        font: inherit;
+      }
+
+      .rsvp-response {
+        display: none;
+        margin-top: 16px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: rgba(242, 201, 76, 0.2);
+        color: var(--azul);
+        font-weight: 700;
+      }
+
+      .rsvp-response.visible {
+        display: block;
+      }
+
       footer {
         padding: 0 24px 56px;
         text-align: center;
@@ -286,16 +322,26 @@
         <section class="info-card rsvp" id="confirmar">
           <h2>Confirme sua presença</h2>
           <p>
-            Será uma alegria ter você conosco nesse dia tão especial. Clique no botão abaixo para
-            enviar uma mensagem de confirmação pelo WhatsApp.
+            Será uma alegria ter você conosco nesse dia tão especial. Preencha os dados abaixo para
+            registrar sua confirmação de presença.
           </p>
-          <a
-            class="button"
-            href="https://wa.me/?text=Ol%C3%A1!%20Gostaria%20de%20confirmar%20minha%20presen%C3%A7a%20no%20anivers%C3%A1rio%20da%20Sofia."
-            target="_blank"
-            rel="noreferrer"
-            >Enviar confirmação</a
-          >
+          <form class="rsvp-form" id="rsvp-form">
+            <label>
+              Seu nome
+              <input id="guest-name" name="guest-name" type="text" placeholder="Digite seu nome" required />
+            </label>
+            <label>
+              Quantidade de acompanhantes
+              <select id="guest-count" name="guest-count">
+                <option value="0">Somente eu</option>
+                <option value="1">1 acompanhante</option>
+                <option value="2">2 acompanhantes</option>
+                <option value="3">3 acompanhantes</option>
+              </select>
+            </label>
+            <button class="button" type="submit">Enviar confirmação</button>
+          </form>
+          <div class="rsvp-response" id="rsvp-response" aria-live="polite"></div>
         </section>
       </main>
 
@@ -310,6 +356,11 @@
         minutes: document.getElementById("minutes"),
         seconds: document.getElementById("seconds"),
       };
+      const rsvpForm = document.getElementById("rsvp-form");
+      const guestName = document.getElementById("guest-name");
+      const guestCount = document.getElementById("guest-count");
+      const rsvpResponse = document.getElementById("rsvp-response");
+      let countdownInterval;
 
       function updateCountdown() {
         const distance = targetDate - Date.now();
@@ -319,6 +370,7 @@
           fields.hours.textContent = "0";
           fields.minutes.textContent = "0";
           fields.seconds.textContent = "0";
+          clearInterval(countdownInterval);
           return;
         }
 
@@ -332,8 +384,21 @@
         fields.seconds.textContent = Math.floor((distance % minute) / 1000);
       }
 
+      rsvpForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+        const companions = Number(guestCount.value);
+        const message =
+          companions > 0
+            ? `${guestName.value}, presença confirmada com ${companions} acompanhante(s). Até a festa!`
+            : `${guestName.value}, presença confirmada. Até a festa!`;
+
+        rsvpResponse.textContent = message;
+        rsvpResponse.classList.add("visible");
+        rsvpForm.reset();
+      });
+
       updateCountdown();
-      setInterval(updateCountdown, 1000);
+      countdownInterval = setInterval(updateCountdown, 1000);
     </script>
   </body>
 </html>
