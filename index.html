@@ -384,6 +384,10 @@
         fields.seconds.textContent = Math.floor((distance % minute) / 1000);
       }
 
+      function hideRsvpResponse() {
+        rsvpResponse.classList.remove("visible");
+      }
+
       rsvpForm.addEventListener("submit", function (event) {
         event.preventDefault();
         const companions = Number(guestCount.value);
@@ -396,6 +400,9 @@
         rsvpResponse.classList.add("visible");
         rsvpForm.reset();
       });
+
+      guestName.addEventListener("input", hideRsvpResponse);
+      guestCount.addEventListener("change", hideRsvpResponse);
 
       updateCountdown();
       countdownInterval = setInterval(updateCountdown, 1000);
