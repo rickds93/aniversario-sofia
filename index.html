@@ -396,9 +396,9 @@
             ? `${guestName.value}, presença confirmada com ${companions} acompanhante(s). Até a festa!`
             : `${guestName.value}, presença confirmada. Até a festa!`;
 
+        rsvpForm.reset();
         rsvpResponse.textContent = message;
         rsvpResponse.classList.add("visible");
-        rsvpForm.reset();
       });
 
       guestName.addEventListener("input", hideRsvpResponse);
