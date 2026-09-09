@@ -147,6 +147,7 @@
         text-decoration: none;
         transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
         box-shadow: 0 10px 24px rgba(141, 23, 51, 0.28);
+        cursor: pointer;
       }
 
       .button.secondary {
@@ -260,6 +261,67 @@
         color: var(--vinho);
       }
 
+      .confirmacoes-container {
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 2px solid rgba(242, 201, 76, 0.4);
+      }
+
+      .confirmacoes-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--azul-claro);
+        margin-bottom: 16px;
+      }
+
+      .confirmacoes-list {
+        max-height: 300px;
+        overflow-y: auto;
+        background: rgba(16, 35, 75, 0.05);
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 12px;
+      }
+
+      .confirmacao-item {
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.6);
+        border-radius: 8px;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+        color: var(--azul);
+      }
+
+      .confirmacao-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .confirmacao-total {
+        font-size: 0.9rem;
+        color: var(--azul-claro);
+        margin-bottom: 12px;
+      }
+
+      .download-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .button.small {
+        min-width: auto;
+        padding: 10px 16px;
+        font-size: 0.9rem;
+      }
+
+      .button.danger {
+        background: rgba(141, 23, 51, 0.6);
+      }
+
+      .button.danger:hover {
+        background: rgba(141, 23, 51, 0.8);
+      }
+
       footer {
         padding: 0 24px 56px;
         text-align: center;
@@ -285,6 +347,14 @@
 
         .card-content {
           grid-template-columns: 1fr;
+        }
+
+        .download-buttons {
+          flex-direction: column;
+        }
+
+        .button.small {
+          width: 100%;
         }
       }
     </style>
@@ -378,6 +448,24 @@
                 <button type="submit" class="button">Confirmar Presença</button>
               </form>
               <div class="rsvp-response" id="rsvp-response"></div>
+
+              <!-- Lista de Confirmações -->
+              <div class="confirmacoes-container" id="confirmacoes-container" style="display: none;">
+                <div class="confirmacoes-title">📝 Confirmações Recebidas</div>
+                <div class="confirmacao-total" id="confirmacao-total"></div>
+                <div class="confirmacoes-list" id="confirmacoes-list"></div>
+                <div class="download-buttons">
+                  <button type="button" class="button small secondary" id="download-btn">
+                    📥 Baixar TXT
+                  </button>
+                  <button type="button" class="button small secondary" id="download-csv-btn">
+                    📊 Baixar CSV
+                  </button>
+                  <button type="button" class="button small danger" id="clear-btn">
+                    🗑️ Limpar Dados
+                  </button>
+                </div>
+              </div>
             </section>
           </div>
         </article>
@@ -399,7 +487,156 @@
       const guestCount = document.getElementById("guest-count");
       const rsvpResponse = document.getElementById("rsvp-response");
       const submitButton = rsvpForm.querySelector('button[type="submit"]');
+      const confirmacoesList = document.getElementById("confirmacoes-list");
+      const confirmacoeContainer = document.getElementById("confirmacoes-container");
+      const confirmacaoTotal = document.getElementById("confirmacao-total");
+      const downloadBtn = document.getElementById("download-btn");
+      const downloadCsvBtn = document.getElementById("download-csv-btn");
+      const clearBtn = document.getElementById("clear-btn");
       let countdownInterval;
+
+      // Chave de armazenamento local
+      const STORAGE_KEY = "aniversario_sofia_confirmacoes";
+
+      // Carrega as confirmações do localStorage
+      function carregarConfirmacoes() {
+        const confirmacoes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        return confirmacoes;
+      }
+
+      // Salva as confirmações no localStorage
+      function salvarConfirmacoes(confirmacoes) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(confirmacoes));
+      }
+
+      // Atualiza a exibição das confirmações
+      function atualizarExibicaoConfirmacoes() {
+        const confirmacoes = carregarConfirmacoes();
+        confirmacoesList.innerHTML = "";
+
+        if (confirmacoes.length === 0) {
+          confirmacoeContainer.style.display = "none";
+          return;
+        }
+
+        confirmacoeContainer.style.display = "block";
+
+        // Calcula total de pessoas
+        let totalPessoas = 0;
+        confirmacoes.forEach((conf) => {
+          const acompanhantes = Number.parseInt(conf.acompanhantes, 10);
+          totalPessoas += 1 + acompanhantes;
+        });
+
+        confirmacaoTotal.textContent = `Total de confirmados: ${confirmacoes.length} | Total de pessoas: ${totalPessoas}`;
+
+        // Exibe cada confirmação
+        confirmacoes.forEach((conf) => {
+          const div = document.createElement("div");
+          div.className = "confirmacao-item";
+          const acompanhantes = Number.parseInt(conf.acompanhantes, 10);
+          const pessoasText = acompanhantes > 0 ? ` + ${acompanhantes} acompanhante(s)` : "";
+          div.textContent = `${conf.nome}${pessoasText} - ${new Date(conf.data_confirmacao).toLocaleDateString("pt-BR", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}`;
+          confirmacoesList.appendChild(div);
+        });
+      }
+
+      // Gera conteúdo TXT
+      function gerarTxt() {
+        const confirmacoes = carregarConfirmacoes();
+        let totalPessoas = 0;
+        let conteudo =
+          "=== CONFIRMAÇÕES DE PRESENÇA - ANIVERSÁRIO SOFIA ===\n";
+        conteudo += `Data de geração: ${new Date().toLocaleString("pt-BR")}\n`;
+        conteudo += "=".repeat(50) + "\n\n";
+
+        confirmacoes.forEach((conf, index) => {
+          const acompanhantes = Number.parseInt(conf.acompanhantes, 10);
+          const pessoasTotal = 1 + acompanhantes;
+          totalPessoas += pessoasTotal;
+          conteudo += `${index + 1}. ${conf.nome}\n`;
+          conteudo += `   Acompanhantes: ${acompanhantes}\n`;
+          conteudo += `   Total de pessoas: ${pessoasTotal}\n`;
+          conteudo += `   Data da confirmação: ${new Date(conf.data_confirmacao).toLocaleDateString("pt-BR", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}\n\n`;
+        });
+
+        conteudo += "=".repeat(50) + "\n";
+        conteudo += `Total de confirmados: ${confirmacoes.length}\n`;
+        conteudo += `Total de pessoas: ${totalPessoas}\n`;
+
+        return conteudo;
+      }
+
+      // Gera conteúdo CSV
+      function gerarCsv() {
+        const confirmacoes = carregarConfirmacoes();
+        let csv = "Nome,Acompanhantes,Total de Pessoas,Data da Confirmação\n";
+
+        confirmacoes.forEach((conf) => {
+          const acompanhantes = Number.parseInt(conf.acompanhantes, 10);
+          const pessoasTotal = 1 + acompanhantes;
+          const data = new Date(conf.data_confirmacao).toLocaleDateString("pt-BR", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+          csv += `"${conf.nome}",${acompanhantes},${pessoasTotal},"${data}"\n`;
+        });
+
+        const confirmacoes_count = confirmacoes.length;
+        let totalPessoas = 0;
+        confirmacoes.forEach((conf) => {
+          totalPessoas += 1 + Number.parseInt(conf.acompanhantes, 10);
+        });
+        csv += `\nTOTAL,${confirmacoes_count - 1},${totalPessoas},\n`;
+
+        return csv;
+      }
+
+      // Download do TXT
+      downloadBtn.addEventListener("click", function () {
+        const conteudo = gerarTxt();
+        const blob = new Blob([conteudo], { type: "text/plain; charset=utf-8" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `confirmacaodepresenca_${new Date().toISOString().split("T")[0]}.txt`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+      });
+
+      // Download do CSV
+      downloadCsvBtn.addEventListener("click", function () {
+        const conteudo = gerarCsv();
+        const blob = new Blob([conteudo], { type: "text/csv; charset=utf-8" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `confirmacaodepresenca_${new Date().toISOString().split("T")[0]}.csv`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+      });
+
+      // Limpa os dados
+      clearBtn.addEventListener("click", function () {
+        if (confirm("Tem certeza que deseja apagar todas as confirmações?")) {
+          localStorage.removeItem(STORAGE_KEY);
+          atualizarExibicaoConfirmacoes();
+          showRsvpResponse("Todos os dados foram apagados!", false);
+        }
+      });
 
       function updateCountdown() {
         const distance = targetDate - Date.now();
@@ -434,47 +671,52 @@
         rsvpResponse.classList.toggle("error", Boolean(isError));
       }
 
-      rsvpForm.addEventListener("submit", async function (event) {
+      rsvpForm.addEventListener("submit", function (event) {
         event.preventDefault();
         hideRsvpResponse();
 
         const nome = guestName.value.trim();
         const acompanhantes = Number.parseInt(guestCount.value, 10);
 
-        submitButton.disabled = true;
-        submitButton.textContent = "Enviando...";
-
-        try {
-          const response = await fetch("/api/rsvp", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              nome,
-              acompanhantes,
-              data_confirmacao: new Date().toISOString(),
-            }),
-          });
-
-          const result = await response.json();
-
-          if (!response.ok) {
-            throw new Error(result.error || "Não foi possível confirmar a presença.");
-          }
-
-          rsvpForm.reset();
-          showRsvpResponse(result.message, false);
-        } catch (error) {
-          showRsvpResponse(error.message || "Não foi possível confirmar a presença.", true);
-        } finally {
-          submitButton.disabled = false;
-          submitButton.textContent = "Confirmar Presença";
+        if (!nome) {
+          showRsvpResponse("Por favor, digite seu nome.", true);
+          return;
         }
+
+        // Verifica se já existe uma confirmação com este nome
+        const confirmacoes = carregarConfirmacoes();
+        const jaConfirmou = confirmacoes.some(
+          (conf) => conf.nome.toLowerCase() === nome.toLowerCase()
+        );
+
+        if (jaConfirmou) {
+          showRsvpResponse(`${nome}, você já confirmou sua presença! 🎉`, true);
+          return;
+        }
+
+        // Adiciona nova confirmação
+        const novaConfirmacao = {
+          nome,
+          acompanhantes,
+          data_confirmacao: new Date().toISOString(),
+        };
+
+        confirmacoes.push(novaConfirmacao);
+        salvarConfirmacoes(confirmacoes);
+
+        rsvpForm.reset();
+        atualizarExibicaoConfirmacoes();
+        showRsvpResponse(
+          `${nome}, sua presença foi confirmada com sucesso! Estamos te esperando! 🎊`,
+          false
+        );
       });
 
       guestName.addEventListener("input", hideRsvpResponse);
       guestCount.addEventListener("change", hideRsvpResponse);
+
+      // Carrega as confirmações ao inicializar
+      atualizarExibicaoConfirmacoes();
 
       updateCountdown();
       countdownInterval = setInterval(updateCountdown, 1000);
