@@ -1,11 +1,13 @@
 const express = require("express");
 const { rateLimit } = require("express-rate-limit");
 const path = require("path");
+const fs = require("fs");
 const sqlite3 = require("sqlite3").verbose();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const databasePath = path.join(__dirname, "database.db");
+const rsvpsFilePath = path.join(__dirname, "rsvps.json");
 const db = new sqlite3.Database(databasePath);
 
 db.serialize(() => {
@@ -18,6 +20,31 @@ db.serialize(() => {
     )
   `);
 });
+
+// Função para carregar RSVPs do arquivo JSON
+function loadRsvpsFromFile() {
+  try {
+    if (fs.existsSync(rsvpsFilePath)) {
+      const data = fs.readFileSync(rsvpsFilePath, "utf-8");
+      return JSON.parse(data);
+    }
+  } catch (error) {
+    console.error("Erro ao carregar rsvps.json:", error);
+  }
+  return [];
+}
+
+// Função para salvar RSVP no arquivo JSON
+function saveRsvpToFile(rsvp) {
+  try {
+    const rsvps = loadRsvpsFromFile();
+    rsvps.push(rsvp);
+    fs.writeFileSync(rsvpsFilePath, JSON.stringify(rsvps, null, 2), "utf-8");
+    console.log("RSVP salvo em rsvps.json");
+  } catch (error) {
+    console.error("Erro ao salvar RSVP no arquivo:", error);
+  }
+}
 
 app.use(express.json());
 
@@ -69,6 +96,16 @@ app.post("/api/rsvp", rsvpLimiter, (request, response) => {
       return response.status(500).json({ error: "Erro interno ao salvar a confirmação." });
     }
 
+    const rsvpData = {
+      id: this.lastID,
+      nome,
+      acompanhantes,
+      data_confirmacao: dataConfirmacao,
+    };
+
+    // Salvar também no arquivo JSON
+    saveRsvpToFile(rsvpData);
+
     const message =
       acompanhantes > 0
         ? `${nome}, presença confirmada com ${acompanhantes} acompanhante(s). Até a festa!`
@@ -76,14 +113,23 @@ app.post("/api/rsvp", rsvpLimiter, (request, response) => {
 
     return response.status(201).json({
       message,
-      rsvp: {
-        id: this.lastID,
-        nome,
-        acompanhantes,
-        data_confirmacao: dataConfirmacao,
-      },
+      rsvp: rsvpData,
     });
   });
+});
+
+// Endpoint para baixar o arquivo de RSVPs
+app.get("/api/rsvps-download", pageLimiter, (request, response) => {
+  try {
+    if (fs.existsSync(rsvpsFilePath)) {
+      response.download(rsvpsFilePath, "rsvps.json");
+    } else {
+      return response.status(404).json({ error: "Nenhum RSVP registrado ainda." });
+    }
+  } catch (error) {
+    console.error("Erro ao baixar RSVPs:", error);
+    return response.status(500).json({ error: "Erro ao baixar o arquivo." });
+  }
 });
 
 // Middleware para retornar JSON em todas as rotas não encontradas
