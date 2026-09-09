@@ -6,16 +6,6 @@
   "scripts": {
     "start": "node server.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "http://localhost:26831/rickds93/aniversario-sofia"
-  },
-  "keywords": [
-    "express",
-    "sqlite",
-    "rsvp"
-  ],
-  "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
