@@ -1,4 +1,5 @@
 const express = require("express");
+const { rateLimit } = require("express-rate-limit");
 const path = require("path");
 const sqlite3 = require("sqlite3").verbose();
 
@@ -6,9 +7,6 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const databasePath = path.join(__dirname, "database.db");
 const db = new sqlite3.Database(databasePath);
-const requestLog = new Map();
-const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
-const RATE_LIMIT_MAX_REQUESTS = 10;
 
 db.serialize(() => {
   db.run(`
@@ -23,31 +21,27 @@ db.serialize(() => {
 
 app.use(express.json());
 
-function getClientAddress(request) {
-  return request.ip || request.socket.remoteAddress || "unknown";
-}
+const pageLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Muitas requisições. Tente novamente mais tarde." },
+});
 
-function rateLimit(request, response, next) {
-  const now = Date.now();
-  const clientAddress = getClientAddress(request);
-  const requestTimestamps = (requestLog.get(clientAddress) || []).filter(
-    (timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS,
-  );
+const rsvpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Muitas confirmações enviadas. Tente novamente mais tarde." },
+});
 
-  if (requestTimestamps.length >= RATE_LIMIT_MAX_REQUESTS) {
-    return response.status(429).json({ error: "Muitas confirmações enviadas. Tente novamente mais tarde." });
-  }
-
-  requestTimestamps.push(now);
-  requestLog.set(clientAddress, requestTimestamps);
-  next();
-}
-
-app.get(["/", "/index.html"], (request, response) => {
+app.get(["/", "/index.html"], pageLimiter, (request, response) => {
   response.sendFile(path.join(__dirname, "index.html"));
 });
 
-app.post("/api/rsvp", rateLimit, (request, response) => {
+app.post("/api/rsvp", rsvpLimiter, (request, response) => {
   const nome = typeof request.body.nome === "string" ? request.body.nome.trim() : "";
   const acompanhantes = Number.parseInt(request.body.acompanhantes, 10);
   const dataConfirmacao = request.body.data_confirmacao;
