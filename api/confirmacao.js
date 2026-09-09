@@ -1,10 +1,19 @@
-import { Octokit } = require("@octokit/rest");
+const { Octokit } = require("@octokit/rest");
 
 const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN,
 });
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
+  // Habilita CORS
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método não permitido" });
   }
@@ -29,17 +38,25 @@ export default async function handler(req, res) {
     ).toString("utf-8");
 
     // Verifica se já existe
-    if (conteudoAtual.includes(nome)) {
-      return res
-        .status(400)
-        .json({ error: `${nome}, você já confirmou sua presença!` });
+    const linhas = conteudoAtual.split("\n");
+    const jaConfirmou = linhas.some(
+      (linha) =>
+        linha.trim() &&
+        linha.toLowerCase().includes(nome.toLowerCase()) &&
+        linha.includes("|")
+    );
+
+    if (jaConfirmou) {
+      return res.status(400).json({
+        error: `${nome}, você já confirmou sua presença! 🎉`,
+      });
     }
 
     // Adiciona nova confirmação
     const dataConfirmacao = new Date().toLocaleString("pt-BR");
     const totalPessoas = 1 + parseInt(acompanhantes);
-    const novaConfirmacao = `${nome} | Acompanhantes: ${acompanhantes} | Total: ${totalPessoas} pessoas | ${dataConfirmacao}\n`;
-    const novoConteudo = conteudoAtual + novaConfirmacao;
+    const novaConfirmacao = `${nome} | Acompanhantes: ${acompanhantes} | Total: ${totalPessoas} pessoas | ${dataConfirmacao}`;
+    const novoConteudo = conteudoAtual + novaConfirmacao + "\n";
 
     // Atualiza o arquivo
     await octokit.repos.createOrUpdateFileContents({
@@ -51,14 +68,14 @@ export default async function handler(req, res) {
       sha: fileResponse.data.sha,
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       message: `${nome}, sua presença foi confirmada com sucesso! Estamos te esperando! 🎊`,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
+    console.error("Erro:", error);
+    return res.status(500).json({
       error: "Erro ao confirmar presença",
       details: error.message,
     });
   }
-}
+};
