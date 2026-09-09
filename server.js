@@ -5,29 +5,53 @@ const fs = require("fs");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const rsvpsFilePath = path.join(__dirname, "rsvps.json");
+const rsvpsFilePath = path.join(__dirname, "rsvps.csv");
 
-// Função para carregar RSVPs do arquivo JSON
+// Função para carregar RSVPs do arquivo CSV
 function loadRsvpsFromFile() {
   try {
     if (fs.existsSync(rsvpsFilePath)) {
       const data = fs.readFileSync(rsvpsFilePath, "utf-8");
-      return JSON.parse(data);
+      const lines = data.trim().split("\n");
+      
+      // Pula o cabeçalho
+      if (lines.length <= 1) return [];
+      
+      return lines.slice(1).map((line, index) => {
+        const [id, nome, acompanhantes, data_confirmacao] = line.split(",");
+        return {
+          id: parseInt(id),
+          nome,
+          acompanhantes: parseInt(acompanhantes),
+          data_confirmacao,
+        };
+      });
     }
   } catch (error) {
-    console.error("Erro ao carregar rsvps.json:", error);
+    console.error("Erro ao carregar rsvps.csv:", error);
   }
   return [];
 }
 
-// Função para salvar RSVP no arquivo JSON
+// Função para salvar RSVP no arquivo CSV
 function saveRsvpToFile(rsvps) {
   try {
-    fs.writeFileSync(rsvpsFilePath, JSON.stringify(rsvps, null, 2), "utf-8");
-    console.log("RSVPs salvos em rsvps.json");
+    const header = "id,nome,acompanhantes,data_confirmacao\n";
+    const lines = rsvps.map(rsvp => 
+      `${rsvp.id},"${rsvp.nome}",${rsvp.acompanhantes},"${rsvp.data_confirmacao}"`
+    ).join("\n");
+    
+    const csvContent = header + lines;
+    fs.writeFileSync(rsvpsFilePath, csvContent, "utf-8");
+    console.log("RSVPs salvos em rsvps.csv");
   } catch (error) {
     console.error("Erro ao salvar RSVPs no arquivo:", error);
   }
+}
+
+// Inicializa arquivo CSV se não existir
+if (!fs.existsSync(rsvpsFilePath)) {
+  fs.writeFileSync(rsvpsFilePath, "id,nome,acompanhantes,data_confirmacao\n", "utf-8");
 }
 
 app.use(express.json());
@@ -100,7 +124,7 @@ app.post("/api/rsvp", rsvpLimiter, (request, response) => {
 app.get("/api/rsvps-download", pageLimiter, (request, response) => {
   try {
     if (fs.existsSync(rsvpsFilePath)) {
-      response.download(rsvpsFilePath, "rsvps.json");
+      response.download(rsvpsFilePath, "rsvps.csv");
     } else {
       return response.status(404).json({ error: "Nenhum RSVP registrado ainda." });
     }
