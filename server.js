@@ -5,53 +5,31 @@ const fs = require("fs");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const rsvpsFilePath = path.join(__dirname, "rsvps.csv");
+const rsvpsFilePath = path.join(__dirname, "rsvps.txt");
 
-// Função para carregar RSVPs do arquivo CSV
-function loadRsvpsFromFile() {
+// Função para salvar RSVP no arquivo TXT
+function saveRsvpToFile(nome, acompanhantes, dataConfirmacao) {
   try {
-    if (fs.existsSync(rsvpsFilePath)) {
-      const data = fs.readFileSync(rsvpsFilePath, "utf-8");
-      const lines = data.trim().split("\n");
-      
-      // Pula o cabeçalho
-      if (lines.length <= 1) return [];
-      
-      return lines.slice(1).map((line, index) => {
-        const [id, nome, acompanhantes, data_confirmacao] = line.split(",");
-        return {
-          id: parseInt(id),
-          nome,
-          acompanhantes: parseInt(acompanhantes),
-          data_confirmacao,
-        };
-      });
-    }
-  } catch (error) {
-    console.error("Erro ao carregar rsvps.csv:", error);
-  }
-  return [];
-}
-
-// Função para salvar RSVP no arquivo CSV
-function saveRsvpToFile(rsvps) {
-  try {
-    const header = "id,nome,acompanhantes,data_confirmacao\n";
-    const lines = rsvps.map(rsvp => 
-      `${rsvp.id},"${rsvp.nome}",${rsvp.acompanhantes},"${rsvp.data_confirmacao}"`
-    ).join("\n");
+    const data = new Date(dataConfirmacao);
+    const dataFormatada = data.toLocaleString("pt-BR");
     
-    const csvContent = header + lines;
-    fs.writeFileSync(rsvpsFilePath, csvContent, "utf-8");
-    console.log("RSVPs salvos em rsvps.csv");
+    const conteudo = `--- CONFIRMAÇÃO DE PRESENÇA ---
+Nome: ${nome}
+Acompanhantes: ${acompanhantes}
+Data: ${dataFormatada}
+
+`;
+
+    fs.appendFileSync(rsvpsFilePath, conteudo, "utf-8");
+    console.log("RSVP salvo em rsvps.txt");
   } catch (error) {
-    console.error("Erro ao salvar RSVPs no arquivo:", error);
+    console.error("Erro ao salvar RSVP no arquivo:", error);
   }
 }
 
-// Inicializa arquivo CSV se não existir
+// Inicializa arquivo TXT se não existir
 if (!fs.existsSync(rsvpsFilePath)) {
-  fs.writeFileSync(rsvpsFilePath, "id,nome,acompanhantes,data_confirmacao\n", "utf-8");
+  fs.writeFileSync(rsvpsFilePath, "=== CONFIRMAÇÕES DE PRESENÇA ===\n\n", "utf-8");
 }
 
 app.use(express.json());
@@ -93,21 +71,8 @@ app.post("/api/rsvp", rsvpLimiter, (request, response) => {
     return response.status(400).json({ error: "A data de confirmação é inválida." });
   }
 
-  // Carrega RSVPs existentes
-  const rsvps = loadRsvpsFromFile();
-  
-  // Cria novo RSVP com ID sequencial
-  const novoId = rsvps.length > 0 ? Math.max(...rsvps.map(r => r.id)) + 1 : 1;
-  const rsvpData = {
-    id: novoId,
-    nome,
-    acompanhantes,
-    data_confirmacao: dataConfirmacao,
-  };
-
-  // Adiciona à lista e salva
-  rsvps.push(rsvpData);
-  saveRsvpToFile(rsvps);
+  // Salva no arquivo de texto
+  saveRsvpToFile(nome, acompanhantes, dataConfirmacao);
 
   const message =
     acompanhantes > 0
@@ -116,7 +81,11 @@ app.post("/api/rsvp", rsvpLimiter, (request, response) => {
 
   return response.status(201).json({
     message,
-    rsvp: rsvpData,
+    rsvp: {
+      nome,
+      acompanhantes,
+      data_confirmacao: dataConfirmacao,
+    },
   });
 });
 
@@ -124,7 +93,7 @@ app.post("/api/rsvp", rsvpLimiter, (request, response) => {
 app.get("/api/rsvps-download", pageLimiter, (request, response) => {
   try {
     if (fs.existsSync(rsvpsFilePath)) {
-      response.download(rsvpsFilePath, "rsvps.csv");
+      response.download(rsvpsFilePath, "rsvps.txt");
     } else {
       return response.status(404).json({ error: "Nenhum RSVP registrado ainda." });
     }
@@ -132,15 +101,6 @@ app.get("/api/rsvps-download", pageLimiter, (request, response) => {
     console.error("Erro ao baixar RSVPs:", error);
     return response.status(500).json({ error: "Erro ao baixar o arquivo." });
   }
-});
-
-// Endpoint para visualizar RSVPs em JSON
-app.get("/api/rsvps", pageLimiter, (request, response) => {
-  const rsvps = loadRsvpsFromFile();
-  return response.status(200).json({
-    total: rsvps.length,
-    rsvps: rsvps,
-  });
 });
 
 // Middleware para retornar JSON em todas as rotas não encontradas
