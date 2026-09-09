@@ -461,9 +461,6 @@
                   <button type="button" class="button small secondary" id="download-csv-btn">
                     📊 Baixar CSV
                   </button>
-                  <button type="button" class="button small danger" id="clear-btn">
-                    🗑️ Limpar Dados
-                  </button>
                 </div>
               </div>
             </section>
@@ -475,6 +472,7 @@
     </div>
 
     <script>
+      const API_URL = "https://aniversario-sofiaa.vercel.app/api/confirmacao";
       const targetDate = new Date("2026-09-23T00:00:00-03:00").getTime();
       const fields = {
         days: document.getElementById("days"),
@@ -492,26 +490,32 @@
       const confirmacaoTotal = document.getElementById("confirmacao-total");
       const downloadBtn = document.getElementById("download-btn");
       const downloadCsvBtn = document.getElementById("download-csv-btn");
-      const clearBtn = document.getElementById("clear-btn");
       let countdownInterval;
+      let confirmacoes = [];
 
-      // Chave de armazenamento local
-      const STORAGE_KEY = "aniversario_sofia_confirmacoes";
-
-      // Carrega as confirmações do localStorage
-      function carregarConfirmacoes() {
-        const confirmacoes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-        return confirmacoes;
-      }
-
-      // Salva as confirmações no localStorage
-      function salvarConfirmacoes(confirmacoes) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(confirmacoes));
+      // Carrega as confirmações da API
+      async function carregarConfirmacoes() {
+        try {
+          const response = await fetch("https://raw.githubusercontent.com/rickds93/aniversario-sofia/main/files/confirmacaodepresenca.txt");
+          const texto = await response.text();
+          const linhas = texto.split("\n").filter((linha) => linha.trim() && linha.includes("|"));
+          confirmacoes = linhas.map((linha) => {
+            const partes = linha.split("|").map((p) => p.trim());
+            return {
+              nome: partes[0],
+              acompanhantes: partes[1]?.match(/\d+/)?.[0] || "0",
+              total: partes[2]?.match(/\d+/)?.[0] || "1",
+              data: partes[3] || "",
+            };
+          });
+          atualizarExibicaoConfirmacoes();
+        } catch (error) {
+          console.error("Erro ao carregar confirmações:", error);
+        }
       }
 
       // Atualiza a exibição das confirmações
       function atualizarExibicaoConfirmacoes() {
-        const confirmacoes = carregarConfirmacoes();
         confirmacoesList.innerHTML = "";
 
         if (confirmacoes.length === 0) {
@@ -524,8 +528,7 @@
         // Calcula total de pessoas
         let totalPessoas = 0;
         confirmacoes.forEach((conf) => {
-          const acompanhantes = Number.parseInt(conf.acompanhantes, 10);
-          totalPessoas += 1 + acompanhantes;
+          totalPessoas += parseInt(conf.total) || 1;
         });
 
         confirmacaoTotal.textContent = `Total de confirmados: ${confirmacoes.length} | Total de pessoas: ${totalPessoas}`;
@@ -534,42 +537,28 @@
         confirmacoes.forEach((conf) => {
           const div = document.createElement("div");
           div.className = "confirmacao-item";
-          const acompanhantes = Number.parseInt(conf.acompanhantes, 10);
+          const acompanhantes = parseInt(conf.acompanhantes) || 0;
           const pessoasText = acompanhantes > 0 ? ` + ${acompanhantes} acompanhante(s)` : "";
-          div.textContent = `${conf.nome}${pessoasText} - ${new Date(conf.data_confirmacao).toLocaleDateString("pt-BR", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-          })}`;
+          div.textContent = `${conf.nome}${pessoasText} - ${conf.data}`;
           confirmacoesList.appendChild(div);
         });
       }
 
       // Gera conteúdo TXT
       function gerarTxt() {
-        const confirmacoes = carregarConfirmacoes();
         let totalPessoas = 0;
-        let conteudo =
-          "=== CONFIRMAÇÕES DE PRESENÇA - ANIVERSÁRIO SOFIA ===\n";
+        let conteudo = "=== CONFIRMAÇÕES DE PRESENÇA - ANIVERSÁRIO SOFIA ===\n";
         conteudo += `Data de geração: ${new Date().toLocaleString("pt-BR")}\n`;
         conteudo += "=".repeat(50) + "\n\n";
 
         confirmacoes.forEach((conf, index) => {
-          const acompanhantes = Number.parseInt(conf.acompanhantes, 10);
-          const pessoasTotal = 1 + acompanhantes;
+          const acompanhantes = parseInt(conf.acompanhantes) || 0;
+          const pessoasTotal = parseInt(conf.total) || 1;
           totalPessoas += pessoasTotal;
           conteudo += `${index + 1}. ${conf.nome}\n`;
           conteudo += `   Acompanhantes: ${acompanhantes}\n`;
           conteudo += `   Total de pessoas: ${pessoasTotal}\n`;
-          conteudo += `   Data da confirmação: ${new Date(conf.data_confirmacao).toLocaleDateString("pt-BR", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-          })}\n\n`;
+          conteudo += `   Data da confirmação: ${conf.data}\n\n`;
         });
 
         conteudo += "=".repeat(50) + "\n";
@@ -581,28 +570,19 @@
 
       // Gera conteúdo CSV
       function gerarCsv() {
-        const confirmacoes = carregarConfirmacoes();
         let csv = "Nome,Acompanhantes,Total de Pessoas,Data da Confirmação\n";
 
         confirmacoes.forEach((conf) => {
-          const acompanhantes = Number.parseInt(conf.acompanhantes, 10);
-          const pessoasTotal = 1 + acompanhantes;
-          const data = new Date(conf.data_confirmacao).toLocaleDateString("pt-BR", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-          csv += `"${conf.nome}",${acompanhantes},${pessoasTotal},"${data}"\n`;
+          const acompanhantes = parseInt(conf.acompanhantes) || 0;
+          const pessoasTotal = parseInt(conf.total) || 1;
+          csv += `"${conf.nome}",${acompanhantes},${pessoasTotal},"${conf.data}"\n`;
         });
 
-        const confirmacoes_count = confirmacoes.length;
         let totalPessoas = 0;
         confirmacoes.forEach((conf) => {
-          totalPessoas += 1 + Number.parseInt(conf.acompanhantes, 10);
+          totalPessoas += parseInt(conf.total) || 1;
         });
-        csv += `\nTOTAL,${confirmacoes_count - 1},${totalPessoas},\n`;
+        csv += `\nTOTAL,${confirmacoes.length - 1},${totalPessoas},\n`;
 
         return csv;
       }
@@ -627,15 +607,6 @@
         link.download = `confirmacaodepresenca_${new Date().toISOString().split("T")[0]}.csv`;
         link.click();
         URL.revokeObjectURL(link.href);
-      });
-
-      // Limpa os dados
-      clearBtn.addEventListener("click", function () {
-        if (confirm("Tem certeza que deseja apagar todas as confirmações?")) {
-          localStorage.removeItem(STORAGE_KEY);
-          atualizarExibicaoConfirmacoes();
-          showRsvpResponse("Todos os dados foram apagados!", false);
-        }
       });
 
       function updateCountdown() {
@@ -671,7 +642,7 @@
         rsvpResponse.classList.toggle("error", Boolean(isError));
       }
 
-      rsvpForm.addEventListener("submit", function (event) {
+      rsvpForm.addEventListener("submit", async function (event) {
         event.preventDefault();
         hideRsvpResponse();
 
@@ -683,40 +654,47 @@
           return;
         }
 
-        // Verifica se já existe uma confirmação com este nome
-        const confirmacoes = carregarConfirmacoes();
-        const jaConfirmou = confirmacoes.some(
-          (conf) => conf.nome.toLowerCase() === nome.toLowerCase()
-        );
+        submitButton.disabled = true;
+        submitButton.textContent = "Enviando...";
 
-        if (jaConfirmou) {
-          showRsvpResponse(`${nome}, você já confirmou sua presença! 🎉`, true);
-          return;
+        try {
+          const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              nome,
+              acompanhantes,
+            }),
+          });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.error || "Não foi possível confirmar a presença.");
+          }
+
+          rsvpForm.reset();
+          showRsvpResponse(result.message, false);
+          
+          // Recarrega as confirmações após sucesso
+          setTimeout(() => {
+            carregarConfirmacoes();
+          }, 1000);
+        } catch (error) {
+          showRsvpResponse(error.message || "Não foi possível confirmar a presença.", true);
+        } finally {
+          submitButton.disabled = false;
+          submitButton.textContent = "Confirmar Presença";
         }
-
-        // Adiciona nova confirmação
-        const novaConfirmacao = {
-          nome,
-          acompanhantes,
-          data_confirmacao: new Date().toISOString(),
-        };
-
-        confirmacoes.push(novaConfirmacao);
-        salvarConfirmacoes(confirmacoes);
-
-        rsvpForm.reset();
-        atualizarExibicaoConfirmacoes();
-        showRsvpResponse(
-          `${nome}, sua presença foi confirmada com sucesso! Estamos te esperando! 🎊`,
-          false
-        );
       });
 
       guestName.addEventListener("input", hideRsvpResponse);
       guestCount.addEventListener("change", hideRsvpResponse);
 
       // Carrega as confirmações ao inicializar
-      atualizarExibicaoConfirmacoes();
+      carregarConfirmacoes();
 
       updateCountdown();
       countdownInterval = setInterval(updateCountdown, 1000);
