@@ -86,8 +86,15 @@ app.post("/api/rsvp", rsvpLimiter, (request, response) => {
   });
 });
 
+// Middleware para retornar JSON em todas as rotas não encontradas
 app.use((request, response) => {
   response.status(404).json({ error: "Rota não encontrada." });
+});
+
+// Middleware de erro global para garantir JSON
+app.use((error, request, response, next) => {
+  console.error("Erro no servidor:", error);
+  response.status(500).json({ error: "Erro interno do servidor." });
 });
 
 if (require.main === module) {
