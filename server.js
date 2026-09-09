@@ -2,24 +2,10 @@ const express = require("express");
 const { rateLimit } = require("express-rate-limit");
 const path = require("path");
 const fs = require("fs");
-const sqlite3 = require("sqlite3").verbose();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const databasePath = path.join(__dirname, "database.db");
 const rsvpsFilePath = path.join(__dirname, "rsvps.json");
-const db = new sqlite3.Database(databasePath);
-
-db.serialize(() => {
-  db.run(`
-    CREATE TABLE IF NOT EXISTS rsvps (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      nome TEXT NOT NULL,
-      acompanhantes INTEGER NOT NULL,
-      data_confirmacao TEXT NOT NULL
-    )
-  `);
-});
 
 // Função para carregar RSVPs do arquivo JSON
 function loadRsvpsFromFile() {
@@ -35,14 +21,12 @@ function loadRsvpsFromFile() {
 }
 
 // Função para salvar RSVP no arquivo JSON
-function saveRsvpToFile(rsvp) {
+function saveRsvpToFile(rsvps) {
   try {
-    const rsvps = loadRsvpsFromFile();
-    rsvps.push(rsvp);
     fs.writeFileSync(rsvpsFilePath, JSON.stringify(rsvps, null, 2), "utf-8");
-    console.log("RSVP salvo em rsvps.json");
+    console.log("RSVPs salvos em rsvps.json");
   } catch (error) {
-    console.error("Erro ao salvar RSVP no arquivo:", error);
+    console.error("Erro ao salvar RSVPs no arquivo:", error);
   }
 }
 
@@ -85,36 +69,30 @@ app.post("/api/rsvp", rsvpLimiter, (request, response) => {
     return response.status(400).json({ error: "A data de confirmação é inválida." });
   }
 
-  const statement = `
-    INSERT INTO rsvps (nome, acompanhantes, data_confirmacao)
-    VALUES (?, ?, ?)
-  `;
+  // Carrega RSVPs existentes
+  const rsvps = loadRsvpsFromFile();
+  
+  // Cria novo RSVP com ID sequencial
+  const novoId = rsvps.length > 0 ? Math.max(...rsvps.map(r => r.id)) + 1 : 1;
+  const rsvpData = {
+    id: novoId,
+    nome,
+    acompanhantes,
+    data_confirmacao: dataConfirmacao,
+  };
 
-  db.run(statement, [nome, acompanhantes, dataConfirmacao], function onInsert(error) {
-    if (error) {
-      console.error("Erro ao salvar RSVP:", error);
-      return response.status(500).json({ error: "Erro interno ao salvar a confirmação." });
-    }
+  // Adiciona à lista e salva
+  rsvps.push(rsvpData);
+  saveRsvpToFile(rsvps);
 
-    const rsvpData = {
-      id: this.lastID,
-      nome,
-      acompanhantes,
-      data_confirmacao: dataConfirmacao,
-    };
+  const message =
+    acompanhantes > 0
+      ? `${nome}, presença confirmada com ${acompanhantes} acompanhante(s). Até a festa!`
+      : `${nome}, presença confirmada. Até a festa!`;
 
-    // Salvar também no arquivo JSON
-    saveRsvpToFile(rsvpData);
-
-    const message =
-      acompanhantes > 0
-        ? `${nome}, presença confirmada com ${acompanhantes} acompanhante(s). Até a festa!`
-        : `${nome}, presença confirmada. Até a festa!`;
-
-    return response.status(201).json({
-      message,
-      rsvp: rsvpData,
-    });
+  return response.status(201).json({
+    message,
+    rsvp: rsvpData,
   });
 });
 
@@ -130,6 +108,15 @@ app.get("/api/rsvps-download", pageLimiter, (request, response) => {
     console.error("Erro ao baixar RSVPs:", error);
     return response.status(500).json({ error: "Erro ao baixar o arquivo." });
   }
+});
+
+// Endpoint para visualizar RSVPs em JSON
+app.get("/api/rsvps", pageLimiter, (request, response) => {
+  const rsvps = loadRsvpsFromFile();
+  return response.status(200).json({
+    total: rsvps.length,
+    rsvps: rsvps,
+  });
 });
 
 // Middleware para retornar JSON em todas as rotas não encontradas
@@ -149,4 +136,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { app, db, databasePath };
+module.exports = { app, rsvpsFilePath };
