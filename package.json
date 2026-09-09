@@ -1,0 +1,25 @@
+{
+  "name": "aniversario-sofia",
+  "version": "1.0.0",
+  "description": "Backend e frontend do convite de aniversário da Sofia com RSVP em SQLite.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://localhost:26831/rickds93/aniversario-sofia"
+  },
+  "keywords": [
+    "express",
+    "sqlite",
+    "rsvp"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^5.2.1",
+    "sqlite3": "^6.0.1"
+  }
+}

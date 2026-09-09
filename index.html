@@ -255,6 +255,11 @@
         display: block;
       }
 
+      .rsvp-response.error {
+        background: rgba(141, 23, 51, 0.12);
+        color: var(--vinho);
+      }
+
       footer {
         padding: 0 24px 56px;
         text-align: center;
@@ -393,6 +398,7 @@
       const guestName = document.getElementById("guest-name");
       const guestCount = document.getElementById("guest-count");
       const rsvpResponse = document.getElementById("rsvp-response");
+      const submitButton = rsvpForm.querySelector('button[type="submit"]');
       let countdownInterval;
 
       function updateCountdown() {
@@ -419,19 +425,52 @@
 
       function hideRsvpResponse() {
         rsvpResponse.classList.remove("visible");
+        rsvpResponse.classList.remove("error");
       }
 
-      rsvpForm.addEventListener("submit", function (event) {
-        event.preventDefault();
-        const companions = Number(guestCount.value);
-        const message =
-          companions > 0
-            ? `${guestName.value}, presença confirmada com ${companions} acompanhante(s). Até a festa!`
-            : `${guestName.value}, presença confirmada. Até a festa!`;
-
-        rsvpForm.reset();
+      function showRsvpResponse(message, isError) {
         rsvpResponse.textContent = message;
         rsvpResponse.classList.add("visible");
+        rsvpResponse.classList.toggle("error", Boolean(isError));
+      }
+
+      rsvpForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+        hideRsvpResponse();
+
+        const nome = guestName.value.trim();
+        const acompanhantes = Number.parseInt(guestCount.value, 10);
+
+        submitButton.disabled = true;
+        submitButton.textContent = "Enviando...";
+
+        try {
+          const response = await fetch("/api/rsvp", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              nome,
+              acompanhantes,
+              data_confirmacao: new Date().toISOString(),
+            }),
+          });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.error || "Não foi possível confirmar a presença.");
+          }
+
+          rsvpForm.reset();
+          showRsvpResponse(result.message, false);
+        } catch (error) {
+          showRsvpResponse(error.message || "Não foi possível confirmar a presença.", true);
+        } finally {
+          submitButton.disabled = false;
+          submitButton.textContent = "Confirmar Presença";
+        }
       });
 
       guestName.addEventListener("input", hideRsvpResponse);
