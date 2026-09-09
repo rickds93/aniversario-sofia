@@ -1,0 +1,8 @@
+{
+  "name": "aniversario-sofia",
+  "version": "1.0.0",
+  "description": "Site do aniversário de Sofia",
+  "dependencies": {
+    "@octokit/rest": "^20.0.0"
+  }
+}
