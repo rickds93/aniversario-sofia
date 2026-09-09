@@ -165,20 +165,35 @@
         padding: 0 24px 64px;
       }
 
-      .info-grid {
-        display: grid;
-        gap: 24px;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      }
-
       .info-card {
-        padding: 28px;
+        padding: 36px;
       }
 
       .info-card h2 {
         margin-top: 0;
+        margin-bottom: 24px;
         font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(1.8rem, 4vw, 2.4rem);
         color: var(--vinho);
+      }
+
+      .card-content {
+        display: grid;
+        gap: 32px;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      }
+
+      .card-section {
+        border-left: 3px solid var(--dourado);
+        padding-left: 18px;
+      }
+
+      .card-section h3 {
+        margin-top: 0;
+        margin-bottom: 12px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--azul-claro);
       }
 
       .details-list,
@@ -188,20 +203,26 @@
         line-height: 1.8;
       }
 
+      .details-list li,
+      .gift-list li {
+        margin-bottom: 8px;
+      }
+
       .rsvp {
         margin-top: 24px;
       }
 
       .small-note {
-        margin-top: 16px;
-        font-size: 0.95rem;
+        margin-top: 12px;
+        font-size: 0.9rem;
         color: var(--azul-claro);
+        font-style: italic;
       }
 
       .rsvp-form {
         display: grid;
         gap: 14px;
-        margin-top: 20px;
+        margin-top: 16px;
       }
 
       .rsvp-form label {
@@ -252,6 +273,14 @@
         .countdown {
           grid-template-columns: repeat(2, minmax(100px, 1fr));
         }
+
+        .info-card {
+          padding: 24px;
+        }
+
+        .card-content {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
@@ -296,20 +325,71 @@
       </header>
 
       <main>
-        <section class="info-grid">
-          <article class="info-card">
-            <h2>Detalhes do convite</h2>
-            <ul class="details-list">
-              <li><strong>Data:</strong> 23/09/2026</li>
-              <li><strong>Aniversário:</strong> 4 anos da Sofia</li>
-              <li><strong>Tema:</strong> Disney A Bela e a Fera</li>
-              <li><strong>Clima:</strong> conto de fadas, dourado, azul real e rosa encantado</li>
-            </ul>
-          </article>
+        <article class="info-card">
+          <h2>Informações da Festa</h2>
+          
+          <div class="card-content">
+            <!-- Detalhes do Convite -->
+            <section class="card-section">
+              <h3>📋 Detalhes do Convite</h3>
+              <ul class="details-list">
+                <li><strong>Data:</strong> 23 de setembro de 2026</li>
+                <li><strong>Aniversariante:</strong> Sofia dos Santos</li>
+                <li><strong>Idade:</strong> 4 anos</li>
+                <li><strong>Tema:</strong> Disney - A Bela e a Fera</li>
+              </ul>
+            </section>
 
-         
+            <!-- Clima e Decoração -->
+            <section class="card-section">
+              <h3>✨ Clima da Festa</h3>
+              <ul class="details-list">
+                <li>Conto de fadas encantado</li>
+                <li>Paleta de cores: Dourado, Azul Real e Rosa</li>
+                <li>Muita magia e encanto</li>
+                <li>Ambiente aconchegante e alegre</li>
+              </ul>
+            </section>
 
-      <footer>Esperamos você para um dia cheio de encanto, rosas e muita diversão.</footer>
+            <!-- Confirmação de Presença -->
+            <section class="card-section rsvp" id="confirmar">
+              <h3>✓ Confirme sua Presença</h3>
+              <p class="small-note">Queremos contar com você! Nos informe sua presença até o dia 20/09.</p>
+              <form class="rsvp-form" id="rsvp-form">
+                <label>
+                  Seu nome:
+                  <input type="text" id="guest-name" placeholder="Digite seu nome" required />
+                </label>
+                <label>
+                  Quantos acompanhantes virão?
+                  <select id="guest-count" required>
+                    <option value="0">Apenas eu</option>
+                    <option value="1">Eu + 1 acompanhante</option>
+                    <option value="2">Eu + 2 acompanhantes</option>
+                    <option value="3">Eu + 3 acompanhantes</option>
+                    <option value="4">Eu + 4 acompanhantes</option>
+                  </select>
+                </label>
+                <button type="submit" class="button">Confirmar Presença</button>
+              </form>
+              <div class="rsvp-response" id="rsvp-response"></div>
+            </section>
+
+            <!-- Observações -->
+            <section class="card-section">
+              <h3>💝 Observações Importantes</h3>
+              <ul class="details-list">
+                <li>Confirmação até 20/09 para melhor organização</li>
+                <li>A festa contará com atividades para todas as idades</li>
+                <li>Haverá acomodação para todos os convidados</li>
+                <li>Contato para dúvidas disponível em breve</li>
+              </ul>
+            </section>
+          </div>
+        </article>
+      </main>
+
+      <footer>Esperamos você para um dia cheio de encanto, rosas e muita diversão. 🌹✨</footer>
     </div>
 
     <script>
