@@ -29,7 +29,7 @@ module.exports = async (req, res) => {
     const fileResponse = await octokit.repos.getContent({
       owner: "rickds93",
       repo: "aniversario-sofia",
-      path: "files/confirmacaodepresenca.txt",
+      path: "confirmacaodepresenca.txt",
     });
 
     const conteudoAtual = Buffer.from(
@@ -62,7 +62,7 @@ module.exports = async (req, res) => {
     await octokit.repos.createOrUpdateFileContents({
       owner: "rickds93",
       repo: "aniversario-sofia",
-      path: "files/confirmacaodepresenca.txt",
+      path: "confirmacaodepresenca.txt",
       message: `Adiciona confirmação: ${nome} (+${acompanhantes} acompanhantes)`,
       content: Buffer.from(novoConteudo).toString("base64"),
       sha: fileResponse.data.sha,
