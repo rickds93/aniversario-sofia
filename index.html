@@ -497,7 +497,7 @@
       // Carrega as confirmações da API
       async function carregarConfirmacoes() {
         try {
-          const response = await fetch("https://raw.githubusercontent.com/rickds93/aniversario-sofia/main/files/confirmacaodepresenca.txt");
+          const response = await fetch("https://raw.githubusercontent.com/rickds93/aniversario-sofia/main/confirmacaodepresenca.txt");
           const texto = await response.text();
           const linhas = texto.split("\n").filter((linha) => linha.trim() && linha.includes("|"));
           confirmacoes = linhas.map((linha) => {
