@@ -209,119 +209,6 @@
         margin-bottom: 8px;
       }
 
-      .rsvp {
-        margin-top: 24px;
-      }
-
-      .small-note {
-        margin-top: 12px;
-        font-size: 0.9rem;
-        color: var(--azul-claro);
-        font-style: italic;
-      }
-
-      .rsvp-form {
-        display: grid;
-        gap: 14px;
-        margin-top: 16px;
-      }
-
-      .rsvp-form label {
-        display: grid;
-        gap: 8px;
-        font-weight: 700;
-        color: var(--azul-claro);
-      }
-
-      .rsvp-form input,
-      .rsvp-form select {
-        width: 100%;
-        padding: 13px 14px;
-        border: 1px solid rgba(16, 35, 75, 0.18);
-        border-radius: 14px;
-        font: inherit;
-      }
-
-      .rsvp-response {
-        display: none;
-        margin-top: 16px;
-        padding: 14px 16px;
-        border-radius: 14px;
-        background: rgba(242, 201, 76, 0.2);
-        color: var(--azul);
-        font-weight: 700;
-      }
-
-      .rsvp-response.visible {
-        display: block;
-      }
-
-      .rsvp-response.error {
-        background: rgba(141, 23, 51, 0.12);
-        color: var(--vinho);
-      }
-
-      .confirmacoes-container {
-        margin-top: 32px;
-        padding-top: 24px;
-        border-top: 2px solid rgba(242, 201, 76, 0.4);
-      }
-
-      .confirmacoes-title {
-        font-size: 1rem;
-        font-weight: 700;
-        color: var(--azul-claro);
-        margin-bottom: 16px;
-      }
-
-      .confirmacoes-list {
-        max-height: 300px;
-        overflow-y: auto;
-        background: rgba(16, 35, 75, 0.05);
-        border-radius: 12px;
-        padding: 12px;
-        margin-bottom: 12px;
-      }
-
-      .confirmacao-item {
-        padding: 8px 12px;
-        background: rgba(255, 255, 255, 0.6);
-        border-radius: 8px;
-        margin-bottom: 8px;
-        font-size: 0.95rem;
-        color: var(--azul);
-      }
-
-      .confirmacao-item:last-child {
-        margin-bottom: 0;
-      }
-
-      .confirmacao-total {
-        font-size: 0.9rem;
-        color: var(--azul-claro);
-        margin-bottom: 12px;
-      }
-
-      .download-buttons {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-      }
-
-      .button.small {
-        min-width: auto;
-        padding: 10px 16px;
-        font-size: 0.9rem;
-      }
-
-      .button.danger {
-        background: rgba(141, 23, 51, 0.6);
-      }
-
-      .button.danger:hover {
-        background: rgba(141, 23, 51, 0.8);
-      }
-
       footer {
         padding: 0 24px 56px;
         text-align: center;
@@ -347,14 +234,6 @@
 
         .card-content {
           grid-template-columns: 1fr;
-        }
-
-        .download-buttons {
-          flex-direction: column;
-        }
-
-        .button.small {
-          width: 100%;
         }
       }
     </style>
@@ -394,8 +273,14 @@
           </div>
 
           <div class="actions">
-            <a class="button secondary" href="#presentes">Lista de presentes</a>
-            <a class="button" href="#confirmar">Confirmar presença</a>
+            <a
+              class="button secondary"
+              href="https://docs.google.com/forms/d/e/1FAIpQLSdxlSOqio1rtXAGUXgmr7geth6QJ4UN_JOf87Q4yNIy74ISyw/viewform?usp=publish-editor"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Confirmar presença
+            </a>
           </div>
         </div>
       </header>
@@ -405,7 +290,6 @@
           <h2>Informações da Festa</h2>
 
           <div class="card-content">
-            <!-- Detalhes do Convite -->
             <section class="card-section">
               <h3>📋 Detalhes do Convite</h3>
               <ul class="details-list">
@@ -416,7 +300,6 @@
               </ul>
             </section>
 
-            <!-- Clima e Decoração -->
             <section class="card-section">
               <h3>✨ Clima da Festa</h3>
               <ul class="details-list">
@@ -426,45 +309,6 @@
                 <li>Ambiente aconchegante e alegre</li>
               </ul>
             </section>
-
-            <!-- Confirmação de Presença -->
-            <section class="card-section rsvp" id="confirmar">
-              <h3>✓ Confirme sua Presença</h3>
-              <p class="small-note">Queremos contar com você! Nos informe sua presença até o dia 20/09.</p>
-              <form class="rsvp-form" id="rsvp-form">
-                <label>
-                  Seu nome:
-                  <input type="text" id="guest-name" placeholder="Digite seu nome" required />
-                </label>
-                <label>
-                  Quantos acompanhantes virão?
-                  <select id="guest-count" required>
-                    <option value="0">Apenas eu</option>
-                    <option value="1">Eu + 1 acompanhante</option>
-                    <option value="2">Eu + 2 acompanhantes</option>
-                    <option value="3">Eu + 3 acompanhantes</option>
-                    <option value="4">Eu + 4 acompanhantes</option>
-                  </select>
-                </label>
-                <button type="submit" class="button">Confirmar Presença</button>
-              </form>
-              <div class="rsvp-response" id="rsvp-response"></div>
-
-              <!-- Lista de Confirmações -->
-              <div class="confirmacoes-container" id="confirmacoes-container" style="display: none;">
-                <div class="confirmacoes-title">📝 Confirmações Recebidas</div>
-                <div class="confirmacao-total" id="confirmacao-total"></div>
-                <div class="confirmacoes-list" id="confirmacoes-list"></div>
-                <div class="download-buttons">
-                  <button type="button" class="button small secondary" id="download-btn">
-                    📥 Baixar TXT
-                  </button>
-                  <button type="button" class="button small secondary" id="download-csv-btn">
-                    📊 Baixar CSV
-                  </button>
-                </div>
-              </div>
-            </section>
           </div>
         </article>
       </main>
@@ -473,7 +317,6 @@
     </div>
 
     <script>
-      const API_URL = "https://aniversario-sofiaa.vercel.app/api/confirmacao";
       const targetDate = new Date("2026-09-23T00:00:00-03:00").getTime();
       const fields = {
         days: document.getElementById("days"),
@@ -481,134 +324,6 @@
         minutes: document.getElementById("minutes"),
         seconds: document.getElementById("seconds"),
       };
-      const rsvpForm = document.getElementById("rsvp-form");
-      const guestName = document.getElementById("guest-name");
-      const guestCount = document.getElementById("guest-count");
-      const rsvpResponse = document.getElementById("rsvp-response");
-      const submitButton = rsvpForm.querySelector('button[type="submit"]');
-      const confirmacoesList = document.getElementById("confirmacoes-list");
-      const confirmacoeContainer = document.getElementById("confirmacoes-container");
-      const confirmacaoTotal = document.getElementById("confirmacao-total");
-      const downloadBtn = document.getElementById("download-btn");
-      const downloadCsvBtn = document.getElementById("download-csv-btn");
-      let countdownInterval;
-      let confirmacoes = [];
-
-      // Carrega as confirmações da API
-      async function carregarConfirmacoes() {
-        try {
-          const response = await fetch("https://raw.githubusercontent.com/rickds93/aniversario-sofia/main/confirmacaodepresenca.txt");
-          const texto = await response.text();
-          const linhas = texto.split("\n").filter((linha) => linha.trim() && linha.includes("|"));
-          confirmacoes = linhas.map((linha) => {
-            const partes = linha.split("|").map((p) => p.trim());
-            return {
-              nome: partes[0],
-              acompanhantes: partes[1]?.match(/\d+/)?.[0] || "0",
-              total: partes[2]?.match(/\d+/)?.[0] || "1",
-              data: partes[3] || "",
-            };
-          });
-          atualizarExibicaoConfirmacoes();
-        } catch (error) {
-          console.error("Erro ao carregar confirmações:", error);
-        }
-      }
-
-      // Atualiza a exibição das confirmações
-      function atualizarExibicaoConfirmacoes() {
-        confirmacoesList.innerHTML = "";
-
-        if (confirmacoes.length === 0) {
-          confirmacoeContainer.style.display = "none";
-          return;
-        }
-
-        confirmacoeContainer.style.display = "block";
-
-        // Calcula total de pessoas
-        let totalPessoas = 0;
-        confirmacoes.forEach((conf) => {
-          totalPessoas += parseInt(conf.total) || 1;
-        });
-
-        confirmacaoTotal.textContent = `Total de confirmados: ${confirmacoes.length} | Total de pessoas: ${totalPessoas}`;
-
-        // Exibe cada confirmação
-        confirmacoes.forEach((conf) => {
-          const div = document.createElement("div");
-          div.className = "confirmacao-item";
-          const acompanhantes = parseInt(conf.acompanhantes) || 0;
-          const pessoasText = acompanhantes > 0 ? ` + ${acompanhantes} acompanhante(s)` : "";
-          div.textContent = `${conf.nome}${pessoasText} - ${conf.data}`;
-          confirmacoesList.appendChild(div);
-        });
-      }
-
-      // Gera conteúdo TXT
-      function gerarTxt() {
-        let totalPessoas = 0;
-        let conteudo = "=== CONFIRMAÇÕES DE PRESENÇA - ANIVERSÁRIO SOFIA ===\n";
-        conteudo += `Data de geração: ${new Date().toLocaleString("pt-BR")}\n`;
-        conteudo += "=".repeat(50) + "\n\n";
-
-        confirmacoes.forEach((conf, index) => {
-          const acompanhantes = parseInt(conf.acompanhantes) || 0;
-          const pessoasTotal = parseInt(conf.total) || 1;
-          totalPessoas += pessoasTotal;
-          conteudo += `${index + 1}. ${conf.nome}\n`;
-          conteudo += `   Acompanhantes: ${acompanhantes}\n`;
-          conteudo += `   Total de pessoas: ${pessoasTotal}\n`;
-          conteudo += `   Data da confirmação: ${conf.data}\n\n`;
-        });
-
-        conteudo += "=".repeat(50) + "\n";
-        conteudo += `Total de confirmados: ${confirmacoes.length}\n`;
-        conteudo += `Total de pessoas: ${totalPessoas}\n`;
-
-        return conteudo;
-      }
-
-      // Gera conteúdo CSV
-      function gerarCsv() {
-        let csv = "Nome,Acompanhantes,Total de Pessoas,Data da Confirmação\n";
-
-        confirmacoes.forEach((conf) => {
-          const acompanhantes = parseInt(conf.acompanhantes) || 0;
-          const pessoasTotal = parseInt(conf.total) || 1;
-          csv += `"${conf.nome}",${acompanhantes},${pessoasTotal},"${conf.data}"\n`;
-        });
-
-        let totalPessoas = 0;
-        confirmacoes.forEach((conf) => {
-          totalPessoas += parseInt(conf.total) || 1;
-        });
-        csv += `\nTOTAL,${confirmacoes.length - 1},${totalPessoas},\n`;
-
-        return csv;
-      }
-
-      // Download do TXT
-      downloadBtn.addEventListener("click", function () {
-        const conteudo = gerarTxt();
-        const blob = new Blob([conteudo], { type: "text/plain; charset=utf-8" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `confirmacaodepresenca_${new Date().toISOString().split("T")[0]}.txt`;
-        link.click();
-        URL.revokeObjectURL(link.href);
-      });
-
-      // Download do CSV
-      downloadCsvBtn.addEventListener("click", function () {
-        const conteudo = gerarCsv();
-        const blob = new Blob([conteudo], { type: "text/csv; charset=utf-8" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `confirmacaodepresenca_${new Date().toISOString().split("T")[0]}.csv`;
-        link.click();
-        URL.revokeObjectURL(link.href);
-      });
 
       function updateCountdown() {
         const distance = targetDate - Date.now();
@@ -632,73 +347,8 @@
         fields.seconds.textContent = Math.floor((distance % minute) / 1000);
       }
 
-      function hideRsvpResponse() {
-        rsvpResponse.classList.remove("visible");
-        rsvpResponse.classList.remove("error");
-      }
-
-      function showRsvpResponse(message, isError) {
-        rsvpResponse.textContent = message;
-        rsvpResponse.classList.add("visible");
-        rsvpResponse.classList.toggle("error", Boolean(isError));
-      }
-
-      rsvpForm.addEventListener("submit", async function (event) {
-        event.preventDefault();
-        hideRsvpResponse();
-
-        const nome = guestName.value.trim();
-        const acompanhantes = Number.parseInt(guestCount.value, 10);
-
-        if (!nome) {
-          showRsvpResponse("Por favor, digite seu nome.", true);
-          return;
-        }
-
-        submitButton.disabled = true;
-        submitButton.textContent = "Enviando...";
-
-        try {
-          const response = await fetch(API_URL, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              nome,
-              acompanhantes,
-            }),
-          });
-
-          const result = await response.json();
-
-          if (!response.ok) {
-            throw new Error(result.error || "Não foi possível confirmar a presença.");
-          }
-
-          rsvpForm.reset();
-          showRsvpResponse(result.message, false);
-
-          // Recarrega as confirmações após sucesso
-          setTimeout(() => {
-            carregarConfirmacoes();
-          }, 1000);
-        } catch (error) {
-          showRsvpResponse(error.message || "Não foi possível confirmar a presença.", true);
-        } finally {
-          submitButton.disabled = false;
-          submitButton.textContent = "Confirmar Presença";
-        }
-      });
-
-      guestName.addEventListener("input", hideRsvpResponse);
-      guestCount.addEventListener("change", hideRsvpResponse);
-
-      // Carrega as confirmações ao inicializar
-      carregarConfirmacoes();
-
       updateCountdown();
-      countdownInterval = setInterval(updateCountdown, 1000);
+      const countdownInterval = setInterval(updateCountdown, 1000);
     </script>
   </body>
 </html>
