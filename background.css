@@ -1,0 +1,28 @@
+body {
+  margin: 0;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  color: #10234b;
+  background-color: #f8dfe8;
+  background-image:
+    linear-gradient(rgba(255, 248, 239, 0.28), rgba(255, 248, 239, 0.38)),
+    url("./wp12139067-beauty-and-the-beast-art-wallpapers.jpg");
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 248, 239, 0.18);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.page {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
